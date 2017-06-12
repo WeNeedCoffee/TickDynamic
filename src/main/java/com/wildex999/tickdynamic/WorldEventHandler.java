@@ -85,6 +85,8 @@ public class WorldEventHandler {
 		try {
 			CustomProfiler customProfiler = (CustomProfiler) event.getWorld().profiler;
 			setCustomProfiler(event.getWorld(), customProfiler.original);
+		} catch (ClassCastException e) {
+			TickDynamicMod.logError("Failed to revert World Profiler to original, as it is already the orginal.");
 		} catch (Exception e) {
 			TickDynamicMod.logError("Failed to revert World Profiler to original");
 			e.printStackTrace();

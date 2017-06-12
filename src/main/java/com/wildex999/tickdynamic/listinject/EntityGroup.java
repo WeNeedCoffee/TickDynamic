@@ -1,5 +1,7 @@
 package com.wildex999.tickdynamic.listinject;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.wildex999.tickdynamic.TickDynamicConfig;
 import com.wildex999.tickdynamic.TickDynamicMod;
 import com.wildex999.tickdynamic.timemanager.TimedEntities;
@@ -65,8 +67,8 @@ public class EntityGroup {
 		this.configEntry = configEntry;
 		this.groupType = groupType;
 
-		entities = new ArrayList<>();
-		entityEntries = new HashSet<>();
+		entities = Lists.newArrayList();
+		entityEntries = Sets.newHashSet();
 		list = null;
 
 		if (base != null) {
