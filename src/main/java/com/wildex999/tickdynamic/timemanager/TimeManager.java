@@ -1,5 +1,6 @@
 package com.wildex999.tickdynamic.timemanager;
 
+import com.wildex999.tickdynamic.TickDynamicConfig;
 import com.wildex999.tickdynamic.TickDynamicMod;
 import net.minecraft.world.World;
 
@@ -61,7 +62,7 @@ public class TimeManager implements ITimed {
 		if (configEntry != null)
 			loadConfig(true);
 		else
-			setSliceMax(TickDynamicMod.instance.defaultWorldSlicesMax);
+			setSliceMax(TickDynamicConfig.defaultWorldSlicesMax);
 	}
 
 	@Override
@@ -74,11 +75,11 @@ public class TimeManager implements ITimed {
 		if (configEntry == null)
 			return;
 
-		setSliceMax(TickDynamicMod.instance.config.get(configEntry, configKeySlicesMax, TickDynamicMod.instance.defaultWorldSlicesMax).getInt());
+		setSliceMax(TickDynamicConfig.config.get(configEntry, configKeySlicesMax, TickDynamicConfig.defaultWorldSlicesMax).getInt());
 
 		//Save any new defaults
 		if (saveDefaults)
-			TickDynamicMod.instance.config.save();
+			TickDynamicConfig.syncConfig();
 	}
 
 	@Override
@@ -86,10 +87,10 @@ public class TimeManager implements ITimed {
 		if (configEntry == null)
 			return;
 
-		TickDynamicMod.instance.config.get(configEntry, configKeySlicesMax, TickDynamicMod.instance.defaultWorldSlicesMax).setValue(getSliceMax());
+		TickDynamicConfig.config.get(configEntry, configKeySlicesMax, TickDynamicConfig.defaultWorldSlicesMax).setValue(getSliceMax());
 
 		if (saveFile)
-			TickDynamicMod.instance.config.save();
+			TickDynamicConfig.syncConfig();
 	}
 
 	//Looks at current usage and rebalances the max time usage according to slices.

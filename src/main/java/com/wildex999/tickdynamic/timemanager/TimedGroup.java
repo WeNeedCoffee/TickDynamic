@@ -1,5 +1,6 @@
 package com.wildex999.tickdynamic.timemanager;
 
+import com.wildex999.tickdynamic.TickDynamicConfig;
 import com.wildex999.tickdynamic.TickDynamicMod;
 import net.minecraft.world.World;
 
@@ -51,7 +52,7 @@ public class TimedGroup implements ITimed {
 
 		int configSlices = 100;
 		if (configEntry != null)
-			configSlices = TickDynamicMod.instance.config.get(configEntry, configKeySlicesMax, configSlices).getInt();
+			configSlices = TickDynamicConfig.config.get(configEntry, configKeySlicesMax, configSlices).getInt();
 		setSliceMax(configSlices);
 	}
 

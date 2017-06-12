@@ -12,54 +12,84 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Set;
 
 public class TickDynamicConfig {
+	public static Configuration config;
+	public static final String CATEGORY_GENERAL = "general";
+	public static final String CATEGORY_WORLDS = "worlds";
+	public static final String CATEGORY_DIM0_ENTITY = "worlds.dim0.entity";
+	public static final String CATEGORY_DIM0_TILEENTITY = "worlds.dim0.tileentity";
+	public static final String CATEGORY_GROUPS = "groups";
 
-	public static void loadConfig(TickDynamicMod mod, boolean groups) {
-		//mod.config.load();
-		mod.config = new Configuration(mod.config.getConfigFile());
+	private static Property ENABLED_PROP;
+	public static boolean isModEnabled = true;
+	private static final String isModEnabled_name = "enabled";
+	private static Property DEBUG_PROP;
+	public static boolean debugEnabled = false;
+	private static final String debugEnabled_name = "debug";
+	private static Property DEBUGGROUPS_PROP;
+	public static boolean debugGroupsEnabled = false;
+	private static final String debugGroupsEnabled_name = "debugGroups";
+	private static Property DEBUGTIMER_PROP;
+	public static boolean debugTimerEnabled = false;
+	private static final String debugTimerEnabled_name = "debugTimer";
+	private static Property DEFAULTWORLDSLICESMAX_PROP;
+	public static int defaultWorldSlicesMax = 100;
+	private static final String defaultWorldSlicesMax_name = "defaultWorldSlicesMax";
+	private static Property DEFAULTAVERAGETICKS_PROP;
+	public static int defaultAverageTicks = 20;
+	private static final String defaultAverageTicks_name = "averageTicks";
+	private static Property DEFAULTTICKTIME_PROP;
+	public static int defaultTickTime = 50;
+	private static final String defaultTickTime_name = "tickTime";
+
+	public static final int defaultEntitySlicesMax = 100;
+	public static final int defaultEntityMinimumObjects = 100;
+	public static final float defaultEntityMinimumTPS = 0;
+	public static final float defaultEntityMinimumTime = 0;
+
+	public static void init(File configFile){
+		config = new Configuration(configFile);
+		config.load();
+	}
+
+	public static void syncConfig(){
+		isModEnabled = ENABLED_PROP.getBoolean();
+		debugEnabled = DEBUG_PROP.getBoolean();
+		debugGroupsEnabled = DEBUGGROUPS_PROP.getBoolean();
+		debugTimerEnabled = DEBUGTIMER_PROP.getBoolean();
+		defaultWorldSlicesMax = DEFAULTWORLDSLICESMAX_PROP.getInt();
+		defaultAverageTicks = DEFAULTAVERAGETICKS_PROP.getInt();
+		defaultTickTime = DEFAULTTICKTIME_PROP.getInt();
+		config.save();
+	}
+
+	public static void loadConfig(boolean groups) {
+		config = new Configuration(config.getConfigFile());
 
 		//--GENERAL CONFIG--
-		mod.config.getCategory("general");
-		mod.config.setCategoryComment("general", "WEBSITE: http://mods.stjerncraft.com/tickdynamic   <- Head here for the documentation, if you have problems or if you have questions."
-				+ "\n\n"
-				+ "Slices are the way you control the time allotment to each world, and within each world, to Entities and TileEntities.\n"
-				+ "Each tick the time for a tick(By default 50ms) will be distributed among all the worlds, according to how many slices they have.\n"
-				+ "If you have 3 worlds, each with 100 slices, then each world will get 100/300 = ~33% of the time.\n"
-				+ "So you can thus give the Overworld a maxSlices of 300, while giving the other two 100 each. This way the Overworld will get 60% of the time.\n"
-				+ "\n"
-				+ "Of the time given to the world, this is further distributed to TileEntities and Entities according to their slices, the same way.\n"
-				+ "TileEntities and Entities are given a portion of the time first given to the world, so their slices are only relative to each other within that world."
-				+ "If any group has unused time, then that time will be distributed to the remaining groups.\n"
-				+ "So even if you give 1000 slices to TileEntities and 100 to Entities, as long as as TileEntities aren't using it's full time,\n"
-				+ "Entities will be able to use more than 100 slices of time.\n"
-				+ "\n"
-				+ "So the formula for slices to time percentage is: (singleGroupInWorld.maxSlices/combinedGroupsInWorld.maxSlices)*100\n"
-				+ "\n"
-				+ "Note: maxSlices = 0 has a special meaning. It means that the group's time usage is accounted for, but not limited.\n"
-				+ "Basically it can take all the time it needs, even if it goes above the parent maxTime, pushing its siblings down to minimumObjects.");
+		config.getCategory(CATEGORY_GENERAL);
+		config.setCategoryComment(CATEGORY_GENERAL, getComment(CATEGORY_GENERAL));
 
-		mod.enabled = mod.config.get("general", "enabled", true, "").getBoolean();
+		ENABLED_PROP = config.get(CATEGORY_GENERAL, isModEnabled_name, isModEnabled);
 
-		//mod.debug = mod.config.get("general", "debug", mod.debug, "Debug output. Warning: Might output a lot of data to console!").getBoolean();
+		DEBUG_PROP = config.get(CATEGORY_GENERAL, debugEnabled_name, debugEnabled, getComment(debugEnabled_name));
 
-		mod.debugGroups = mod.config.get("general", "debugGroups", mod.debugGroups, "Debug Group mapping and assignment. Will spam during world load and config reload!!!").getBoolean();
+		DEBUGGROUPS_PROP = config.get(CATEGORY_GENERAL, debugGroupsEnabled_name, debugGroupsEnabled, getComment(debugGroupsEnabled_name));
 
-		mod.debugTimer = mod.config.get("general", "debugTimer", mod.debugTimer, "Debug output from time allocation and calculation. Warning: Setting this to true will cause a lot of console spam.\n"
-				+ "Only do it if developer or someone else asks for the output!").getBoolean();
+		DEBUGTIMER_PROP = config.get(CATEGORY_GENERAL, debugTimerEnabled_name, debugTimerEnabled, getComment(debugTimerEnabled_name));
 
-		mod.defaultWorldSlicesMax = mod.config.get("general", "defaultWorldSlicesMax", mod.defaultWorldSlicesMax, "The default maxSlices for a new automatically added world.").getInt();
+		DEFAULTWORLDSLICESMAX_PROP = config.get(CATEGORY_GENERAL, defaultWorldSlicesMax_name, defaultWorldSlicesMax, getComment(defaultWorldSlicesMax_name));
 
-		mod.defaultAverageTicks = mod.config.get("general", "averageTicks", mod.defaultAverageTicks, "How many ticks of data to use when averaging for time balancing.\n"
-				+ "A higher number will make it take regular spikes into account, however will make it slower to adjust to changes.").getInt();
+		DEFAULTAVERAGETICKS_PROP = config.get(CATEGORY_GENERAL, defaultAverageTicks_name, defaultAverageTicks, getComment(defaultAverageTicks_name));
 
 		//-- WORLDS CONFIG --
-		mod.defaultTickTime = mod.config.get("worlds", "tickTime", mod.defaultTickTime, "The time allotted to a tick in milliseconds. 20 Ticks per second means 50ms per tick.\n"
-				+ "This is the base time allotment it will use when balancing the time usage between worlds and objects.\n"
-				+ "You can set this to less than 50ms if you want to leave a bit of buffer time for other things, or don't want to use 100% cpu.").getInt();
+		DEFAULTTICKTIME_PROP = config.get(CATEGORY_WORLDS, defaultTickTime_name, defaultTickTime, getComment(defaultTickTime_name));
 
 		//-- GROUPS CONFIG --
 		/*
@@ -77,16 +107,16 @@ public class TickDynamicConfig {
 
 		//Load New, Reload and Remove old groups
 		if (groups) {
-			loadGlobalGroups(mod);
+			loadGlobalGroups();
 
 			//Default example for Entities and TileEntities in dim0(Overworld)
-			if (!mod.config.hasCategory("worlds.dim0.entity")) {
-				mod.config.get("worlds.dim0.entity", ITimed.configKeySlicesMax, mod.defaultEntitySlicesMax);
-				mod.config.get("worlds.dim0.entity", EntityGroup.config_groupType, EntityType.Entity.toString());
+			if (!config.hasCategory(CATEGORY_DIM0_ENTITY)) {
+				config.get(CATEGORY_DIM0_ENTITY, ITimed.configKeySlicesMax, defaultEntitySlicesMax);
+				config.get(CATEGORY_DIM0_ENTITY, EntityGroup.config_groupType, EntityType.Entity.toString());
 			}
-			if (!mod.config.hasCategory("worlds.dim0.tileentity")) {
-				mod.config.get("worlds.dim0.tileentity", ITimed.configKeySlicesMax, mod.defaultEntitySlicesMax);
-				mod.config.get("worlds.dim0.tileentity", EntityGroup.config_groupType, EntityType.TileEntity.toString());
+			if (!config.hasCategory(CATEGORY_DIM0_TILEENTITY)) {
+				config.get(CATEGORY_DIM0_TILEENTITY, ITimed.configKeySlicesMax, defaultEntitySlicesMax);
+				config.get(CATEGORY_DIM0_TILEENTITY, EntityGroup.config_groupType, EntityType.TileEntity.toString());
 			}
 
 			//Reload local groups
@@ -109,49 +139,39 @@ public class TickDynamicConfig {
 			TickDynamicMod.logDebug("Done reloading worlds");
 
 			//Reload Timed
-			for (ITimed timed : mod.timedObjects.values()) {
+			for (ITimed timed : TickDynamicMod.instance.timedObjects.values()) {
 				if (timed instanceof TimedEntities) {
 					TimedEntities timedGroup = (TimedEntities) timed;
 					if (!timedGroup.getEntityGroup().valid) {
-						mod.timedObjects.remove(timedGroup);
+						TickDynamicMod.instance.timedObjects.remove(timedGroup);
 						continue;
 					}
 				}
 				timed.loadConfig(false);
 			}
 
-			if (mod.root != null)
-				mod.root.setTimeMax(mod.defaultTickTime * TimeManager.timeMilisecond);
+			if (TickDynamicMod.instance.root != null)
+				TickDynamicMod.instance.root.setTimeMax(defaultTickTime * TimeManager.timeMilisecond);
 		}
 
 		//Save any new defaults
-		mod.config.save();
+		syncConfig();
 	}
 
 	//Load the config of Global Groups
-	public static void loadGlobalGroups(TickDynamicMod mod) {
-
-		mod.config.setCategoryComment("groups", "Groups define a list of Entities and/or TileEntities and the configuration for them.\n"
-				+ "You can define the groups here, and they will automatically be part of every world.\n"
-				+ "\n"
-				+ "If you wish to override the settings for a group in a specific world, you can simply include a group with the same name in the world,\n"
-				+ "and then provide the new values. Any value you do not define will be read from the global group.\n"
-				+ "So you can for example define a group for all Animal mobs, and define them to get less time than other Entities in all worlds,\n"
-				+ "but then define them to get even less time in a certain world without having to re-define the list of Entities.\n"
-				+ "\n"
-				+ "Note that the groups 'entity' and 'tileentity' are special groups. Any TileEntity or Entity which are not included in any other group,\n"
-				+ "will be automatically included in these two groups.");
+	public static void loadGlobalGroups() {
+		config.setCategoryComment(CATEGORY_GROUPS, getComment(CATEGORY_GROUPS));
 
 		//Load/Create default entity and tileentity groups
-		loadDefaultGlobalGroups(mod);
+		loadDefaultGlobalGroups();
 
 		//Load Global groups
-		loadGroups("groups");
+		loadGroups(CATEGORY_GROUPS);
 	}
 
 	//Load all groups under the given category
 	public static void loadGroups(String category) {
-		ConfigCategory groupsCat = TickDynamicMod.instance.config.getCategory(category);
+		ConfigCategory groupsCat = config.getCategory(category);
 		Set<ConfigCategory> groups = groupsCat.getChildren();
 
 		//Remove every group which is no longer in groups set
@@ -168,7 +188,7 @@ public class TickDynamicConfig {
 				groupName = groupPath.substring(nameIndex + 1);
 
 			boolean remove = true;
-			if (TickDynamicMod.instance.config.hasCategory(groupPath))
+			if (config.hasCategory(groupPath))
 				remove = false;
 
 			//Check if local copy of a global group
@@ -176,7 +196,7 @@ public class TickDynamicConfig {
 				EntityGroup entityGroup = TickDynamicMod.instance.entityGroups.get(groupPath);
 				if (entityGroup != null && entityGroup.base != null) {
 					//Check if the global group still exists
-					if (TickDynamicMod.instance.config.hasCategory("groups." + groupName))
+					if (config.hasCategory("groups." + groupName))
 						remove = false;
 				}
 			}
@@ -225,43 +245,47 @@ public class TickDynamicConfig {
 			entityGroup.readConfig(false);
 	}
 
-	public static void loadDefaultGlobalGroups(TickDynamicMod mod) {
+	public static void loadDefaultGlobalGroups() {
 		EntityGroup group;
 		TimedEntities timedGroup;
 		String groupPath;
 
 		groupPath = "groups.entity";
-		group = mod.getEntityGroup(groupPath);
+		group = TickDynamicMod.instance.getEntityGroup(groupPath);
 		if (group == null) {
 			timedGroup = new TimedEntities(null, "entity", groupPath, null);
 			timedGroup.init();
 			group = new EntityGroup(null, timedGroup, "entity", groupPath, EntityType.Entity, null);
-			mod.entityGroups.put(groupPath, group);
+			TickDynamicMod.instance.entityGroups.put(groupPath, group);
 		}
 
 		//Player group accounts the time used by players(Usually not limited, just used for accounting)
 		groupPath = "groups.players";
-		group = mod.getEntityGroup(groupPath);
+		group = TickDynamicMod.instance.getEntityGroup(groupPath);
 		if (group == null) {
 			//Write new defaults before creating group
-			mod.config.get(groupPath, TimedEntities.configKeySlicesMax, 0); //No limit by default
+			config.get(groupPath, TimedEntities.configKeySlicesMax, 0); //No limit by default
 			String[] entityClasses = {EntityPlayer.class.getName(), EntityPlayerMP.class.getName()};
-			mod.config.get(groupPath, EntityGroup.config_classNames, entityClasses);
+			config.get(groupPath, EntityGroup.config_classNames, entityClasses);
 
 			timedGroup = new TimedEntities(null, "players", groupPath, null);
 			timedGroup.init();
 
 			group = new EntityGroup(null, timedGroup, "players", groupPath, EntityType.Entity, null);
-			mod.entityGroups.put(groupPath, group);
+			TickDynamicMod.instance.entityGroups.put(groupPath, group);
 		}
 
 		groupPath = "groups.tileentity";
-		group = mod.getEntityGroup(groupPath);
+		group = TickDynamicMod.instance.getEntityGroup(groupPath);
 		if (group == null) {
 			timedGroup = new TimedEntities(null, "tileentity", groupPath, null);
 			timedGroup.init();
 			group = new EntityGroup(null, timedGroup, "tileentity", groupPath, EntityType.TileEntity, null);
-			mod.entityGroups.put(groupPath, group);
+			TickDynamicMod.instance.entityGroups.put(groupPath, group);
 		}
+	}
+
+	private static String getComment(String key){
+		return TickDynamicMod.proxy.translate(key+".tooltip", "\n");
 	}
 }

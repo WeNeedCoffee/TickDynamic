@@ -1,0 +1,21 @@
+general=General
+general.tooltip=WEBSITE: https://mods.curse.com/mc-mods/minecraft/269359-tick-dynamic   <- Head here for the documentation, if you have problems or if you have questions.%1$s%1$sSlices are the way you control the time allotment to each world, and within each world, to Entities and TileEntities.%1$sEach tick the time for a tick(By default 50ms) will be distributed among all the worlds, according to how many slices they have.%1$sIf you have 3 worlds, each with 100 slices, then each world will get 100/300 = ~33% of the time.%1$sSo you can thus give the Overworld a maxSlices of 300, while giving the other two 100 each. This way the Overworld will get 60% of the time.%1$s%1$sOf the time given to the world, this is further distributed to TileEntities and Entities according to their slices, the same way.%1$sTileEntities and Entities are given a portion of the time first given to the world, so their slices are only relative to each other within that world.%1$sIf any group has unused time, then that time will be distributed to the remaining groups.%1$sSo even if you give 1000 slices to TileEntities and 100 to Entities, as long as as TileEntities aren't using it's full time,%1$sEntities will be able to use more than 100 slices of time.%1$s%1$sSo the formula for slices to time percentage is: (singleGroupInWorld.maxSlices/combinedGroupsInWorld.maxSlices)*100%1$s%1$sNote: maxSlices = 0 has a special meaning. It means that the group's time usage is accounted for, but not limited.%1$sBasically it can take all the time it needs, even if it goes above the parent maxTime, pushing its siblings down to minimumObjects.
+enabled=Tick Dynamic Enabled
+enabled.tooltip=Is the mod enabled?
+debug=Debug Logging
+debug.tooltip=Debug output. Warning: Might output a lot of data to console!
+debugGroups=Debug Logging for Groups
+debugGroups.tooltip=Debug Group mapping and assignment. Will spam console during world load and config reload!!!
+debugTimer=Debug Logging for Timer
+debugTimer.tooltip=Debug output from time allocation and calculation. Warning: Setting this to true will cause a lot of console spam.%sOnly do it if developer or someone else asks for the output!
+defaultWorldSlicesMax=Default Max World Slices
+defaultWorldSlicesMax.tooltip=The default Max Slices for a new automatically added world.
+averageTicks=Default Average Ticks
+averageTicks.tooltip=How many ticks of data to use when averaging for time balancing.%sA higher number will make it take regular spikes into account, however will make it slower to adjust to changes.
+tickTime=Default Tick Time
+tickTime.tooltip=The time allotted to a tick in milliseconds. 20 Ticks per second means 50ms per tick.%1$sThis is the base time allotment it will use when balancing the time usage between worlds and objects.%1$sYou can set this to less than 50ms if you want to leave a bit of buffer time for other things, or don't want to use 100% cpu.
+
+groups=Groups
+groups.tooltip=Groups define a list of Entities and/or TileEntities and the configuration for them.%1$sYou can define the groups here, and they will automatically be part of every world.%1$s%1$sIf you wish to override the settings for a group in a specific world, you can simply include a group with the same name in the world,%1$sand then provide the new values. Any value you do not define will be read from the global group.%1$sSo you can for example define a group for all Animal mobs, and define them to get less time than other Entities in all worlds,%1$sbut then define them to get even less time in a certain world without having to re-define the list of Entities.%1$s%1$sNote that the groups 'entity' and 'tileentity' are special groups. Any TileEntity or Entity which are not included in any other group,%1$swill be automatically included in these two groups.
+
+worlds=Worlds

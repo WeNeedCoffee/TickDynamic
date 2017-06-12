@@ -80,7 +80,7 @@ public class ListManager<T extends EntityObject> implements List<T> {
 
 	//Add a copy of any global groups who are not already loaded
 	private void loadGlobalGroups() {
-		ConfigCategory config = TickDynamicMod.instance.config.getCategory("groups");
+		ConfigCategory config = TickDynamicConfig.config.getCategory("groups");
 		Iterator<ConfigCategory> globalIt;
 		for (globalIt = config.getChildren().iterator(); globalIt.hasNext(); ) {
 			ConfigCategory groupCategory = globalIt.next();

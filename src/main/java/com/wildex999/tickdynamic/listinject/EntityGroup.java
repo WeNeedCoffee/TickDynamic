@@ -1,5 +1,6 @@
 package com.wildex999.tickdynamic.listinject;
 
+import com.wildex999.tickdynamic.TickDynamicConfig;
 import com.wildex999.tickdynamic.TickDynamicMod;
 import com.wildex999.tickdynamic.timemanager.TimedEntities;
 import net.minecraft.block.Block;
@@ -37,7 +38,6 @@ public class EntityGroup {
 	public static final String config_groupType = "groupType";
 	public static final String config_enabled = "enabled";
 
-	private TickDynamicMod mod;
 	private World world;
 
 	public ListManager list; //The ListManager that contains this group
@@ -76,7 +76,6 @@ public class EntityGroup {
 			gotOwnEntries = true;
 		this.base = base;
 
-		this.mod = mod;
 		this.world = world;
 		readConfig(true);
 
@@ -94,40 +93,40 @@ public class EntityGroup {
 
 		enabled = true;
 		String comment = "Whether this group is enabled or not. If not, no Entity/TileEntity will be added to it.";
-		if (base != null && !mod.config.hasKey(configEntry, config_enabled))
-			enabled = mod.config.get(base.configEntry, config_enabled, enabled, comment).getBoolean();
+		if (base != null && !TickDynamicConfig.config.hasKey(configEntry, config_enabled))
+			enabled = TickDynamicConfig.config.get(base.configEntry, config_enabled, enabled, comment).getBoolean();
 		else
-			enabled = mod.config.get(configEntry, config_enabled, enabled, comment).getBoolean();
+			enabled = TickDynamicConfig.config.get(configEntry, config_enabled, enabled, comment).getBoolean();
 
 		comment = "Entity or TileEntity group";
-		if (base != null && !mod.config.hasKey(configEntry, config_groupType))
-			groupType = EntityType.valueOf(mod.config.get(base.configEntry, config_groupType, groupType.toString(), comment).getString());
+		if (base != null && !TickDynamicConfig.config.hasKey(configEntry, config_groupType))
+			groupType = EntityType.valueOf(TickDynamicConfig.config.get(base.configEntry, config_groupType, groupType.toString(), comment).getString());
 		else
-			groupType = EntityType.valueOf(mod.config.get(configEntry, config_groupType, groupType.toString(), comment).getString());
+			groupType = EntityType.valueOf(TickDynamicConfig.config.get(configEntry, config_groupType, groupType.toString(), comment).getString());
 
 		useCorrectedTime = true;
 		comment = "Set the World time to the correct time for the TPS of this group.";
-		if (base != null && !mod.config.hasKey(configEntry, config_useCorrectedTime))
-			useCorrectedTime = mod.config.get(base.configEntry, config_useCorrectedTime, useCorrectedTime, comment).getBoolean();
+		if (base != null && !TickDynamicConfig.config.hasKey(configEntry, config_useCorrectedTime))
+			useCorrectedTime = TickDynamicConfig.config.get(base.configEntry, config_useCorrectedTime, useCorrectedTime, comment).getBoolean();
 		else
-			useCorrectedTime = mod.config.get(configEntry, config_useCorrectedTime, useCorrectedTime, comment).getBoolean();
+			useCorrectedTime = TickDynamicConfig.config.get(configEntry, config_useCorrectedTime, useCorrectedTime, comment).getBoolean();
 
 		String[] entities = {""};
 		comment = "List of Entity/Block names(Ex: Sheep / minecraft:furnace) who are to be included in this group.";
-		if (base != null && !mod.config.hasKey(configEntry, config_entityNames))
-			entities = mod.config.get(base.configEntry, config_entityNames, entities, comment).getStringList();
+		if (base != null && !TickDynamicConfig.config.hasKey(configEntry, config_entityNames))
+			entities = TickDynamicConfig.config.get(base.configEntry, config_entityNames, entities, comment).getStringList();
 		else {
 			gotOwnEntries = true;
-			entities = mod.config.get(configEntry, config_entityNames, entities, comment).getStringList();
+			entities = TickDynamicConfig.config.get(configEntry, config_entityNames, entities, comment).getStringList();
 		}
 
 		String[] entityClasses = {""};
 		comment = "List of Entity/TileEntity class names(Ex: net.minecraft.tileentity.TileEntityDropper), for Entities that are to be included in this group.";
-		if (base != null && !mod.config.hasKey(configEntry, config_classNames))
-			entityClasses = mod.config.get(base.configEntry, config_classNames, entityClasses, comment).getStringList();
+		if (base != null && !TickDynamicConfig.config.hasKey(configEntry, config_classNames))
+			entityClasses = TickDynamicConfig.config.get(base.configEntry, config_classNames, entityClasses, comment).getStringList();
 		else {
 			gotOwnEntries = true;
-			entityClasses = mod.config.get(configEntry, config_classNames, entityClasses, comment).getStringList();
+			entityClasses = TickDynamicConfig.config.get(configEntry, config_classNames, entityClasses, comment).getStringList();
 		}
 
 		gotOwnEntries = true;
@@ -144,15 +143,7 @@ public class EntityGroup {
 			shareEntries(base); //Since we have nothing different from base, we just share the list of Entries
 
 		if (save)
-			mod.queueSaveConfig();
-	}
-
-	public void writeConfig(boolean saveFile) {
-		//TODO
-		//TODO: Don't write value if set by base(And not overwritten)
-
-		if (saveFile)
-			mod.queueSaveConfig();
+			TickDynamicMod.queueSaveConfig();
 	}
 
 	public String getConfigEntry() {

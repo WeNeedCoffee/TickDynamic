@@ -1,5 +1,6 @@
 package com.wildex999.tickdynamic.timemanager;
 
+import com.wildex999.tickdynamic.TickDynamicConfig;
 import com.wildex999.tickdynamic.TickDynamicMod;
 import com.wildex999.tickdynamic.listinject.EntityGroup;
 import net.minecraft.world.World;
@@ -42,10 +43,10 @@ public class TimedEntities extends TimedGroup {
 		setTimeMax(0);
 
 		if (this.base == null) {
-			setSliceMax(TickDynamicMod.instance.defaultEntitySlicesMax);
-			setMinimumObjects(TickDynamicMod.instance.defaultEntityMinimumObjects);
-			setMinimumTPS(TickDynamicMod.instance.defaultEntityMinimumTPS);
-			setMinimumTime(TickDynamicMod.instance.defaultEntityMinimumTime);
+			setSliceMax(TickDynamicConfig.defaultEntitySlicesMax);
+			setMinimumObjects(TickDynamicConfig.defaultEntityMinimumObjects);
+			setMinimumTPS(TickDynamicConfig.defaultEntityMinimumTPS);
+			setMinimumTime(TickDynamicConfig.defaultEntityMinimumTime);
 		} else {
 			setSliceMax(base.getSliceMax());
 			if (base instanceof TimedEntities) {
@@ -65,31 +66,31 @@ public class TimedEntities extends TimedGroup {
 			return;
 
 		String comment = "The number of slices given to this Group";
-		if (base != null && !TickDynamicMod.instance.config.hasKey(configEntry, configKeySlicesMax))
-			sliceMax = TickDynamicMod.instance.config.get(base.configEntry, configKeySlicesMax, sliceMax, comment).getInt();
+		if (base != null && !TickDynamicConfig.config.hasKey(configEntry, configKeySlicesMax))
+			sliceMax = TickDynamicConfig.config.get(base.configEntry, configKeySlicesMax, sliceMax, comment).getInt();
 		else
-			sliceMax = TickDynamicMod.instance.config.get(configEntry, configKeySlicesMax, sliceMax, comment).getInt();
+			sliceMax = TickDynamicConfig.config.get(configEntry, configKeySlicesMax, sliceMax, comment).getInt();
 		setSliceMax(sliceMax);
 
 		comment = "Minimum number of objects to tick, independent of slices. Set to 0 to disable.";
-		if (base != null && !TickDynamicMod.instance.config.hasKey(configEntry, configKeyMinimumObjects))
-			minimumObjects = TickDynamicMod.instance.config.get(base.configEntry, configKeyMinimumObjects, minimumObjects, comment).getInt();
+		if (base != null && !TickDynamicConfig.config.hasKey(configEntry, configKeyMinimumObjects))
+			minimumObjects = TickDynamicConfig.config.get(base.configEntry, configKeyMinimumObjects, minimumObjects, comment).getInt();
 		else
-			minimumObjects = TickDynamicMod.instance.config.get(configEntry, configKeyMinimumObjects, minimumObjects, comment).getInt();
+			minimumObjects = TickDynamicConfig.config.get(configEntry, configKeyMinimumObjects, minimumObjects, comment).getInt();
 		setMinimumObjects(minimumObjects);
 
 		comment = "Minimum TPS to keep, independent of slices. Set to 0 to disable.";
-		if (base != null && !TickDynamicMod.instance.config.hasKey(configEntry, configKeyMinimumTPS))
-			minimumTPS = (float) TickDynamicMod.instance.config.get(base.configEntry, configKeyMinimumTPS, minimumTPS, comment).getDouble();
+		if (base != null && !TickDynamicConfig.config.hasKey(configEntry, configKeyMinimumTPS))
+			minimumTPS = (float) TickDynamicConfig.config.get(base.configEntry, configKeyMinimumTPS, minimumTPS, comment).getDouble();
 		else
-			minimumTPS = (float) TickDynamicMod.instance.config.get(configEntry, configKeyMinimumTPS, minimumTPS, comment).getDouble();
+			minimumTPS = (float) TickDynamicConfig.config.get(configEntry, configKeyMinimumTPS, minimumTPS, comment).getDouble();
 		setMinimumTPS(minimumTPS);
 
 		comment = "Minimum Time to keep(In milliseconds), independent of slices. Set to 0 to disable.";
-		if (base != null && !TickDynamicMod.instance.config.hasKey(configEntry, configKeyMinimumTime))
-			minimumTime = (float) TickDynamicMod.instance.config.get(base.configEntry, configKeyMinimumTime, minimumTime, comment).getDouble();
+		if (base != null && !TickDynamicConfig.config.hasKey(configEntry, configKeyMinimumTime))
+			minimumTime = (float) TickDynamicConfig.config.get(base.configEntry, configKeyMinimumTime, minimumTime, comment).getDouble();
 		else
-			minimumTime = (float) TickDynamicMod.instance.config.get(configEntry, configKeyMinimumTime, minimumTime, comment).getDouble();
+			minimumTime = (float) TickDynamicConfig.config.get(configEntry, configKeyMinimumTime, minimumTime, comment).getDouble();
 		setMinimumTime(minimumTime);
 
 		//Save any default values
@@ -234,7 +235,7 @@ public class TimedEntities extends TimedGroup {
 		super.newTick(clearChildren);
 
 		//Calculate average TPS
-		if (listTPS.size() >= TickDynamicMod.instance.defaultAverageTicks)
+		if (listTPS.size() >= TickDynamicConfig.defaultAverageTicks)
 			listTPS.removeFirst();
 		listTPS.add(currentTPS);
 

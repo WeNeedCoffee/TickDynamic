@@ -57,7 +57,6 @@ public class TickDynamicMod {
 	public Map<String, EntityGroup> entityGroups;
 	public TimeManager root;
 	public boolean enabled;
-	public MinecraftServer server;
 
 	public Semaphore tpsMutex;
 	public Timer tpsTimer;
@@ -66,39 +65,31 @@ public class TickDynamicMod {
 	public int tpsAverageSeconds = 5; //Seconds to average TPS over
 	public LinkedList<Integer> tpsList; //List of latest TPS for calculating average
 
-	//Config
-	public Configuration config;
-	public boolean saveConfig;
+	@SidedProxy(clientSide = "com.wildex999.tickdynamic.client.ClientProxy", serverSide = "com.wildex999.tickdynamic.CommonProxy")
+	public static CommonProxy proxy;
 
-	public int defaultTickTime = 50;
-	public int defaultEntitySlicesMax = 100;
-	public int defaultEntityMinimumObjects = 100;
-	public float defaultEntityMinimumTPS = 0;
-	public float defaultEntityMinimumTime = 0;
-	public int defaultWorldSlicesMax = 100;
-	public int defaultAverageTicks = 20;
+	//Config
+	public static boolean saveConfig;
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		tpsMutex = new Semaphore(1);
 		tpsTimer = new Timer();
 		tpsList = Lists.newLinkedList();
-		config = new Configuration(event.getSuggestedConfigurationFile());
+		TickDynamicConfig.init(event.getSuggestedConfigurationFile());
 	}
 
-	//Load the configuration file
-	//groups: Whether to (re)load the groups
+	/**
+	 * Load the configuration file
+	 * @param groups
+	 * Whether to (re)load the groups
+	 */
 	public void loadConfig(boolean groups) {
-		//TODO: Separate Initial load, reload and write
-		TickDynamicConfig.loadConfig(this, groups);
-	}
-
-	public void writeConfig(boolean saveFile) {
-		//TODO
+		TickDynamicConfig.loadConfig(groups);
 	}
 
 	//Queue to save any changes done to the config
-	public void queueSaveConfig() {
+	public static void queueSaveConfig() {
 		saveConfig = true;
 	}
 
@@ -112,7 +103,7 @@ public class TickDynamicMod {
 
 		root = new TimeManager(null, "root", null);
 		root.init();
-		root.setTimeMax(defaultTickTime * TimeManager.timeMilisecond);
+		root.setTimeMax(TickDynamicConfig.defaultTickTime * TimeManager.timeMilisecond);
 
 		//Other group accounts the time used in a tick, but not for Entities or TileEntities
 		TimedGroup otherTimed = new TimedGroup(null, "other", "other");
@@ -133,14 +124,11 @@ public class TickDynamicMod {
 		event.registerServerCommand(new CommandHandler());
 
 		tpsTimer.schedule(new TimerTickTask(), 1000, 1000);
-
-		server = event.getServer();
 	}
 
 	@Mod.EventHandler
 	public void serverStop(FMLServerStoppingEvent event) {
 		tpsTimer.cancel();
-		server = null;
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -190,7 +178,7 @@ public class TickDynamicMod {
 
 			if (saveConfig) {
 				saveConfig = false;
-				config.save();
+				TickDynamicConfig.syncConfig();
 			}
 		}
 	}
@@ -266,7 +254,7 @@ public class TickDynamicMod {
 			if (world.isRemote)
 				worldManager.setSliceMax(0);
 
-			config.setCategoryComment(managerName, world.provider.getDimensionType().getName());
+			TickDynamicConfig.config.setCategoryComment(managerName, world.provider.getDimensionType().getName());
 
 			root.addChild(worldManager);
 		}
@@ -378,7 +366,7 @@ public class TickDynamicMod {
 	}
 
 	public ConfigCategory getWorldConfigCategory(World world) {
-		return config.getCategory(getWorldPrefix(world));
+		return TickDynamicConfig.config.getCategory(getWorldPrefix(world));
 	}
 
 	/**
