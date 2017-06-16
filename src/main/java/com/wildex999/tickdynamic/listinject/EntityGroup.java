@@ -303,7 +303,7 @@ public class EntityGroup {
 	}
 
 	private Class loadEntityByName(String name) {
-		return EntityList.getClass(new ResourceLocation(name));
+		return EntityList.getClassFromID(EntityList.getIDFromString(name));
 	}
 
 	//Load by class name

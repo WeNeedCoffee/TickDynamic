@@ -27,7 +27,7 @@ public class WorldEventHandler {
 
 	@SubscribeEvent
 	public void worldTickEvent(TickEvent.WorldTickEvent event) {
-		Profiler profiler = event.world.profiler;
+		Profiler profiler = event.world.theProfiler;
 		if (!(profiler instanceof CustomProfiler))
 			return;
 		CustomProfiler customProfiler = (CustomProfiler) profiler;
@@ -49,7 +49,7 @@ public class WorldEventHandler {
 
 		//Inject Custom Profiler for watching Entity ticking
 		try {
-			setCustomProfiler(event.getWorld(), new CustomProfiler(event.getWorld().profiler));
+			setCustomProfiler(event.getWorld(), new CustomProfiler(event.getWorld().theProfiler));
 		} catch (Exception e) {
 			TickDynamicMod.logError("Unable to set TickDynamic World profiler! World will not be using TickDynamic: " + event.getWorld());
 			e.printStackTrace();
@@ -83,7 +83,7 @@ public class WorldEventHandler {
 		TickDynamicMod.logDebug("TickDynamic unloading injected lists for world: " + event.getWorld().provider.getDimensionType().getName());
 
 		try {
-			CustomProfiler customProfiler = (CustomProfiler) event.getWorld().profiler;
+			CustomProfiler customProfiler = (CustomProfiler) event.getWorld().theProfiler;
 			setCustomProfiler(event.getWorld(), customProfiler.original);
 		} catch (Exception e) {
 			TickDynamicMod.logError("Failed to revert World Profiler to original");
@@ -118,6 +118,6 @@ public class WorldEventHandler {
 	}
 
 	private void setCustomProfiler(World world, Profiler profiler) throws Exception {
-		ReflectionHelper.setPrivateValue(World.class, world, profiler, "profiler", "field_72984_F");
+		ReflectionHelper.setPrivateValue(World.class, world, profiler, "theProfiler", "field_72984_F");
 	}
 }

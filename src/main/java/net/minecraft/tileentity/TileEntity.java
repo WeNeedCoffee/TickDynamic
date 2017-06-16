@@ -1,5 +1,7 @@
 package net.minecraft.tileentity;
 
+import com.google.common.collect.Maps;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 import com.wildex999.tickdynamic.listinject.EntityObject;
@@ -12,10 +14,8 @@ import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.util.Mirror;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.RegistryNamespaced;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -26,7 +26,8 @@ import org.apache.logging.log4j.Logger;
 public abstract class TileEntity extends EntityObject implements net.minecraftforge.common.capabilities.ICapabilitySerializable<NBTTagCompound>
 {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final RegistryNamespaced < ResourceLocation, Class <? extends TileEntity >> REGISTRY = net.minecraftforge.fml.common.registry.GameData.getTileEntityRegistry();
+    private static final Map < String, Class <? extends TileEntity >> nameToClassMap = Maps. < String, Class <? extends TileEntity >> newHashMap();
+    private static final Map < Class <? extends TileEntity > , String > classToNameMap = Maps. < Class <? extends TileEntity > , String > newHashMap();
     /** the instance of the world the tile entity is in. */
     protected World world;
     protected BlockPos pos = BlockPos.ORIGIN;
@@ -35,15 +36,20 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
     /** the Block type that this TileEntity is contained within */
     protected Block blockType;
 
-    private static void register(String p_190560_0_, Class <? extends TileEntity > p_190560_1_)
+    /**
+     * Adds a new two-way mapping between the class and its string name in both hashmaps.
+     */
+    public static void addMapping(Class <? extends TileEntity > cl, String id)
     {
-        REGISTRY.putObject(new ResourceLocation(p_190560_0_), p_190560_1_);
-    }
-
-    @Nullable
-    public static ResourceLocation getKey(Class <? extends TileEntity > p_190559_0_)
-    {
-        return REGISTRY.getNameForObject(p_190559_0_);
+        if (nameToClassMap.containsKey(id))
+        {
+            throw new IllegalArgumentException("Duplicate id: " + id);
+        }
+        else
+        {
+            nameToClassMap.put(id, cl);
+            classToNameMap.put(cl, id);
+        }
     }
 
     /**
@@ -84,15 +90,15 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
 
     private NBTTagCompound writeInternal(NBTTagCompound compound)
     {
-        ResourceLocation resourcelocation = REGISTRY.getNameForObject(this.getClass());
+        String s = (String)classToNameMap.get(this.getClass());
 
-        if (resourcelocation == null)
+        if (s == null)
         {
             throw new RuntimeException(this.getClass() + " is missing a mapping! This is a bug!");
         }
         else
         {
-            compound.setString("id", resourcelocation.toString());
+            compound.setString("id", s);
             compound.setInteger("x", this.pos.getX());
             compound.setInteger("y", this.pos.getY());
             compound.setInteger("z", this.pos.getZ());
@@ -102,7 +108,6 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
         }
     }
 
-    @Nullable
     public static TileEntity create(World worldIn, NBTTagCompound compound)
     {
         TileEntity tileentity = null;
@@ -111,16 +116,16 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
 
         try
         {
-            oclass = (Class)REGISTRY.getObject(new ResourceLocation(s));
+            oclass = nameToClassMap.get(s);
 
             if (oclass != null)
             {
-                tileentity = oclass.newInstance();
+                tileentity = (TileEntity)oclass.newInstance();
             }
         }
         catch (Throwable throwable1)
         {
-            LOGGER.error("Failed to create block entity {}", s, throwable1);
+            LOGGER.error("Failed to create block entity {}", new Object[] {s, throwable1});
             net.minecraftforge.fml.common.FMLLog.log(org.apache.logging.log4j.Level.ERROR, throwable1,
                     "A TileEntity %s(%s) has thrown an exception during loading, its state cannot be restored. Report this to the mod author",
                     s, oclass.getName());
@@ -135,7 +140,7 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
             }
             catch (Throwable throwable)
             {
-                LOGGER.error("Failed to load data for block entity {}", s, throwable);
+                LOGGER.error("Failed to load data for block entity {}", new Object[] {s, throwable});
                 net.minecraftforge.fml.common.FMLLog.log(org.apache.logging.log4j.Level.ERROR, throwable,
                         "A TileEntity %s(%s) has thrown an exception during loading, its state cannot be restored. Report this to the mod author",
                         s, oclass.getName());
@@ -144,7 +149,7 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
         }
         else
         {
-            LOGGER.warn("Skipping BlockEntity with id {}", (Object)s);
+            LOGGER.warn("Skipping BlockEntity with id {}", new Object[] {s});
         }
 
         return tileentity;
@@ -264,18 +269,18 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
 
     public void addInfoToCrashReport(CrashReportCategory reportCategory)
     {
-        reportCategory.addDetail("Name", new ICrashReportDetail<String>()
+        reportCategory.setDetail("Name", new ICrashReportDetail<String>()
         {
             public String call() throws Exception
             {
-                return TileEntity.REGISTRY.getNameForObject(TileEntity.this.getClass()) + " // " + TileEntity.this.getClass().getCanonicalName();
+                return (String)TileEntity.classToNameMap.get(TileEntity.this.getClass()) + " // " + TileEntity.this.getClass().getCanonicalName();
             }
         });
 
         if (this.world != null)
         {
             CrashReportCategory.addBlockInfo(reportCategory, this.pos, this.getBlockType(), this.getBlockMetadata());
-            reportCategory.addDetail("Actual block type", new ICrashReportDetail<String>()
+            reportCategory.setDetail("Actual block type", new ICrashReportDetail<String>()
             {
                 public String call() throws Exception
                 {
@@ -283,7 +288,7 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
 
                     try
                     {
-                        return String.format("ID #%d (%s // %s)", i, Block.getBlockById(i).getUnlocalizedName(), Block.getBlockById(i).getClass().getCanonicalName());
+                        return String.format("ID #%d (%s // %s)", new Object[] {Integer.valueOf(i), Block.getBlockById(i).getUnlocalizedName(), Block.getBlockById(i).getClass().getCanonicalName()});
                     }
                     catch (Throwable var3)
                     {
@@ -291,7 +296,7 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
                     }
                 }
             });
-            reportCategory.addDetail("Actual block data value", new ICrashReportDetail<String>()
+            reportCategory.setDetail("Actual block data value", new ICrashReportDetail<String>()
             {
                 public String call() throws Exception
                 {
@@ -304,8 +309,8 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
                     }
                     else
                     {
-                        String s = String.format("%4s", Integer.toBinaryString(i)).replace(" ", "0");
-                        return String.format("%1$d / 0x%1$X / 0b%2$s", i, s);
+                        String s = String.format("%4s", new Object[] {Integer.toBinaryString(i)}).replace(" ", "0");
+                        return String.format("%1$d / 0x%1$X / 0b%2$s", new Object[] {Integer.valueOf(i), s});
                     }
                 }
             });
@@ -314,7 +319,13 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
 
     public void setPos(BlockPos posIn)
     {
-        this.pos = posIn.toImmutable();
+        if (posIn instanceof BlockPos.MutableBlockPos || posIn instanceof BlockPos.PooledMutableBlockPos)
+        {
+            LOGGER.warn((String)"Tried to assign a mutable BlockPos to a block entity...", (Throwable)(new Error(posIn.getClass().toString())));
+            posIn = new BlockPos(posIn);
+        }
+
+        this.pos = posIn;
     }
 
     public boolean onlyOpsCanSetNbt()
@@ -331,11 +342,11 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
         return null;
     }
 
-    public void rotate(Rotation rotationIn)
+    public void rotate(Rotation p_189667_1_)
     {
     }
 
-    public void mirror(Mirror mirrorIn)
+    public void mirror(Mirror p_189668_1_)
     {
     }
 
@@ -427,7 +438,7 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
             net.minecraft.util.math.AxisAlignedBB cbb = null;
             try
             {
-                cbb = world.getBlockState(getPos()).getCollisionBoundingBox(world, pos).offset(pos);
+                cbb = world.getBlockState(getPos()).getCollisionBoundingBox(world, pos).addCoord(pos.getX(), pos.getY(), pos.getZ());
             }
             catch (Exception e)
             {
@@ -489,8 +500,9 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
 
 
     /**
-     * Called when this is first added to the world (by {@link World#addTileEntity(TileEntity)}).
-     * Override instead of adding {@code if (firstTick)} stuff in update.
+     * Called from the Chunk when this is first added to the world. Override instead of adding
+     * if (firstTick) stuff in update. Happens after validate and after it has been placed into the Chunk tileEntity
+     * map.
      */
     public void onLoad()
     {
@@ -512,15 +524,12 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
         capabilities = net.minecraftforge.event.ForgeEventFactory.gatherCapabilities(this);
     }
 
-    @Override
-    public boolean hasCapability(net.minecraftforge.common.capabilities.Capability<?> capability, @Nullable net.minecraft.util.EnumFacing facing)
+    public boolean hasCapability(net.minecraftforge.common.capabilities.Capability<?> capability, net.minecraft.util.EnumFacing facing)
     {
         return capabilities == null ? false : capabilities.hasCapability(capability, facing);
     }
 
-    @Override
-    @Nullable
-    public <T> T getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable net.minecraft.util.EnumFacing facing)
+    public <T> T getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, net.minecraft.util.EnumFacing facing)
     {
         return capabilities == null ? null : capabilities.getCapability(capability, facing);
     }
@@ -539,30 +548,28 @@ public abstract class TileEntity extends EntityObject implements net.minecraftfo
 
     static
     {
-        register("furnace", TileEntityFurnace.class);
-        register("chest", TileEntityChest.class);
-        register("ender_chest", TileEntityEnderChest.class);
-        register("jukebox", BlockJukebox.TileEntityJukebox.class);
-        register("dispenser", TileEntityDispenser.class);
-        register("dropper", TileEntityDropper.class);
-        register("sign", TileEntitySign.class);
-        register("mob_spawner", TileEntityMobSpawner.class);
-        register("noteblock", TileEntityNote.class);
-        register("piston", TileEntityPiston.class);
-        register("brewing_stand", TileEntityBrewingStand.class);
-        register("enchanting_table", TileEntityEnchantmentTable.class);
-        register("end_portal", TileEntityEndPortal.class);
-        register("beacon", TileEntityBeacon.class);
-        register("skull", TileEntitySkull.class);
-        register("daylight_detector", TileEntityDaylightDetector.class);
-        register("hopper", TileEntityHopper.class);
-        register("comparator", TileEntityComparator.class);
-        register("flower_pot", TileEntityFlowerPot.class);
-        register("banner", TileEntityBanner.class);
-        register("structure_block", TileEntityStructure.class);
-        register("end_gateway", TileEntityEndGateway.class);
-        register("command_block", TileEntityCommandBlock.class);
-        register("shulker_box", TileEntityShulkerBox.class);
-        register("bed", TileEntityBed.class);
+        addMapping(TileEntityFurnace.class, "Furnace");
+        addMapping(TileEntityChest.class, "Chest");
+        addMapping(TileEntityEnderChest.class, "EnderChest");
+        addMapping(BlockJukebox.TileEntityJukebox.class, "RecordPlayer");
+        addMapping(TileEntityDispenser.class, "Trap");
+        addMapping(TileEntityDropper.class, "Dropper");
+        addMapping(TileEntitySign.class, "Sign");
+        addMapping(TileEntityMobSpawner.class, "MobSpawner");
+        addMapping(TileEntityNote.class, "Music");
+        addMapping(TileEntityPiston.class, "Piston");
+        addMapping(TileEntityBrewingStand.class, "Cauldron");
+        addMapping(TileEntityEnchantmentTable.class, "EnchantTable");
+        addMapping(TileEntityEndPortal.class, "Airportal");
+        addMapping(TileEntityBeacon.class, "Beacon");
+        addMapping(TileEntitySkull.class, "Skull");
+        addMapping(TileEntityDaylightDetector.class, "DLDetector");
+        addMapping(TileEntityHopper.class, "Hopper");
+        addMapping(TileEntityComparator.class, "Comparator");
+        addMapping(TileEntityFlowerPot.class, "FlowerPot");
+        addMapping(TileEntityBanner.class, "Banner");
+        addMapping(TileEntityStructure.class, "Structure");
+        addMapping(TileEntityEndGateway.class, "EndGateway");
+        addMapping(TileEntityCommandBlock.class, "Control");
     }
 }

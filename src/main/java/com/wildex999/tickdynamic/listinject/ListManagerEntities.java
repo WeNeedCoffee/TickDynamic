@@ -17,7 +17,7 @@ public class ListManagerEntities extends ListManager<EntityObject> {
 
 	public ListManagerEntities(World world) {
 		super(world, EntityType.Entity);
-		profiler = (CustomProfiler) world.profiler;
+		profiler = (CustomProfiler) world.theProfiler;
 	}
 
 

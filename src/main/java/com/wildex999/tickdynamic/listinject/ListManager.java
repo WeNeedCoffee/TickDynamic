@@ -32,7 +32,7 @@ public class ListManager<T extends EntityObject> implements List<T> {
 
 	public ListManager(World world, EntityType type) {
 		this.world = world;
-		this.customProfiler = (CustomProfiler) world.profiler;
+		this.customProfiler = (CustomProfiler) world.theProfiler;
 		this.entityType = type;
 		localGroups = new HashSet<>();
 		groupMap = new HashMap<>();
