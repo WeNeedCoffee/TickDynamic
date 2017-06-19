@@ -28,9 +28,9 @@ def signJar(archivePath) {
     if (project.hasProperty("keyStoreAlias") && project.hasProperty("keyStore") && project.hasProperty("keyStorePass")) {
         ant.signjar(
             jar:                  archivePath,
-            alias:                project.keyStoreAlias,
-            keystore:             project.keyStore,
-            storepass:            project.keyStorePass,
+            alias:                project.ksAlias,
+            keystore:             project.ks,
+            storepass:            project.ksPass,
             preservelastmodified: true
         )
     } else {
