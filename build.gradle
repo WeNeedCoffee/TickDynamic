@@ -25,7 +25,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 def signJar(archivePath) {
-    if (project.hasProperty("keyStoreAlias") && project.hasProperty("keyStore") && project.hasProperty("keyStorePass")) {
+    if (project.hasProperty("ksAlias") && project.hasProperty("ks") && project.hasProperty("ksPass")) {
         ant.signjar(
             jar:                  archivePath,
             alias:                project.ksAlias,
