@@ -1,1 +1,1 @@
-Fixed crashes
+The mod can now run server-side only
