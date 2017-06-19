@@ -38,7 +38,7 @@ def signJar(archivePath) {
     }
 }
 
-version = "0.5.6"
+version = "0.5.7"
 group= "com.wildex999.tickdynamic"
 archivesBaseName = "TickDynamic-1.10.2"
 
@@ -143,7 +143,7 @@ curseforge {
   project {
     id = '269359'
     changelog = file('changelog.txt')
-    releaseType = 'alpha'
+    releaseType = 'beta'
     addGameVersion '1.10.2'
 	addGameVersion 'Java 8'
     mainArtifact(jar) {
@@ -167,7 +167,7 @@ modsIO {
 		modid = "1265"
 		minecraft = "1.10.2"
 		try{changelog = file('changelog.txt').text}catch(Exception e){changelog=""}
-		tag = "alpha"
+		tag = "beta"
 		current = true
     }
 }

@@ -1,2 +1,1 @@
-The mod can now run server-side only
-Added jar signing. Needs testing.
+Added jar signing that works.
