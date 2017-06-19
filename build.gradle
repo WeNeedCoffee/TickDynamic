@@ -94,11 +94,6 @@ task showVersion {
     outputs.upToDateWhen { false }
 }
 
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'deobf'
-}
-
 jar {
     manifest {
             attributes 'FMLCorePlugin': 'com.wildex999.tickdynamic.LoadingPlugin',
