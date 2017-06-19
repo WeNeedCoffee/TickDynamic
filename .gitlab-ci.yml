@@ -45,7 +45,7 @@ fakeDeploy:
   stage: deploy
   script:
   - ./gradlew clean
-  - ./gradlew build -PksAlias=$ksAlias -Pks=$ks -PksPass=ksPass --debug --stacktrace
+  - ./gradlew build -PksAlias=$ksAlias -Pks=$ks -PksPass=$ksPass --debug --stacktrace
   - cp $ORIG_ARTIFACTS .
   when: manual
   artifacts:
