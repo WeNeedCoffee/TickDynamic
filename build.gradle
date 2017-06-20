@@ -38,7 +38,7 @@ def signJar(archivePath) {
     }
 }
 
-version = "0.5.7"
+version = "0.5.9"
 group= "com.wildex999.tickdynamic"
 archivesBaseName = "TickDynamic-1.11.2"
 
@@ -53,6 +53,8 @@ minecraft {
     runDir = "run"
     replace '${version}', project.version
     mappings = "stable_32"
+	
+	clientRunArgs += "-uuid=0b1ec5ad-cb2a-43b7-995d-889320eb2e5b -username=The_Fireplace"
 }
 
 dependencies {
