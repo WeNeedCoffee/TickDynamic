@@ -1,1 +1,1 @@
-Fixed jar signing(Last time, I promise)
+Fixed the log spam caused by non-tickable modded tile entities.
