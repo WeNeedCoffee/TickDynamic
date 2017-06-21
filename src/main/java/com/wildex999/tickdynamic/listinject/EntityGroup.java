@@ -57,16 +57,14 @@ public class EntityGroup {
 	private boolean useCorrectedTime;
 	private EntityType groupType;
 
-	private static Map<ResourceLocation, Class> tileResourceToClassMap = Maps.newHashMap();
+	private static Map<String, Class> tileNameToClassMap;
 
 	static {
 		try {
-			RegistryNamespaced<ResourceLocation, Class <? extends TileEntity>> registry = ReflectionHelper.getPrivateValue(TileEntity.class, null, "REGISTRY", "field_190562_f");
-			for(ResourceLocation entry:registry.getKeys())
-				tileResourceToClassMap.put(entry, registry.getObject(entry));
+			tileNameToClassMap = ReflectionHelper.getPrivateValue(TileEntity.class, null, "nameToClassMap", "field_145855_i");
 		} catch(Exception e) {
 			TickDynamicMod.logError(e.toString());
-			TickDynamicMod.logError("Unable to load TileEntities from Mods, class variable(REGISTRY) lookup failed. The code might be obfuscated!");
+			TickDynamicMod.logError("Unable to load TileEntities from Mods, class variable(nameToClassMap) lookup failed. The code might be obfuscated!");
 		}
 	}
 
@@ -415,9 +413,9 @@ public class EntityGroup {
 
 	private List<Class> loadTilesByModName(String name) {
 		TickDynamicMod.logTrace("Attempting to load tiles for "+name);
-		if(tileResourceToClassMap == null)
+		if(tileNameToClassMap == null)
 			return null;
-		return loadClassesFromResourceLocation(tileResourceToClassMap, name);
+		return loadClassesFromNamePrefix(tileNameToClassMap, name);
 	}
 
 	private List<Class> loadEntitiesByModName(String name) {
@@ -433,7 +431,7 @@ public class EntityGroup {
 		while(it.hasNext())
 		{
 			Map.Entry<Class<? extends Entity>, EntityRegistry.EntityRegistration> entry = it.next();
-			if(entry.getValue().getRegistryName().getResourceDomain().equalsIgnoreCase(name))
+			if(entry.getValue().getContainer().getModId().equalsIgnoreCase(name))
 			{
 				Class value = entry.getKey();
 				classList.add(value);
@@ -445,23 +443,20 @@ public class EntityGroup {
 		return classList;
 	}
 
-	private List<Class> loadClassesFromResourceLocation(Map<ResourceLocation, Class> classToRegistrationMap, String name) {
+	private List<Class> loadClassesFromNamePrefix(Map<String, ? extends Class> nameToClassMap, String name) {
 		List<Class> classList = new ArrayList<Class>();
 
-		Set<?> entries = classToRegistrationMap.entrySet();
-		Iterator<Map.Entry<ResourceLocation, Class>> it = (Iterator<Map.Entry<ResourceLocation, Class>>) entries.iterator();
+		Set<?> entries = nameToClassMap.entrySet();
+		Iterator<Map.Entry<String, ? extends Class>> it = (Iterator<Map.Entry<String, ? extends Class>>) entries.iterator();
 		while(it.hasNext())
 		{
-			Map.Entry<ResourceLocation, Class> entry = it.next();
-			if(entry.getKey().getResourceDomain().equalsIgnoreCase(name))
+			Map.Entry<String, ? extends Class> entry = it.next();
+			if(entry.getKey().startsWith(name)) //TODO: Could get false positives. Use Regex instead?
 			{
 				Class value = entry.getValue();
 				classList.add(value);
 			}
 		}
-
-		if(!classList.isEmpty())
-			TickDynamicMod.logTrace(classList.toString());
 
 		return classList;
 	}
